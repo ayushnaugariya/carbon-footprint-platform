@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { type ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -73,7 +73,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <header className="sticky top-0 z-50 border-b border-slate-200/40 bg-white/70 dark:bg-[#121b18]/70 backdrop-blur-md relative transition-colors duration-300">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
             <svg 
               className="h-7 w-7 text-brand-600 transition-transform duration-300 hover:rotate-12" 
               viewBox="0 0 24 24" 
@@ -90,7 +90,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <span className="text-xl font-bold tracking-tight text-brand-900 dark:text-slate-100">
               Green<span className="text-brand-600">Track</span>
             </span>
-          </div>
+          </Link>
 
           {user ? (
             <nav aria-label="Main navigation" className="flex items-center gap-1.5">
@@ -146,7 +146,40 @@ export function Layout({ children }: { children: ReactNode }) {
                 </button>
               </div>
             </nav>
-          ) : null}
+          ) : (
+            <nav aria-label="Main navigation" className="flex items-center gap-1.5">
+              <NavLink to="/" end className={navLinkClasses}>
+                Home
+              </NavLink>
+              
+              <div className="ml-3 flex items-center gap-2.5 border-l border-slate-200 dark:border-slate-800 pl-3">
+                {/* Theme Toggle Button */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                  className="rounded-lg p-2 text-ink-700 hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-slate-800/50 transition-colors"
+                >
+                  {theme === 'light' ? (
+                    // Moon Icon (light mode active)
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  ) : (
+                    // Sun Icon (dark mode active)
+                    <svg className="h-5 w-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  )}
+                </button>
+
+                <NavLink to="/login" className="rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-1.5 text-xs font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-slate-800/40">
+                  Log In / Sign Up
+                </NavLink>
+              </div>
+            </nav>
+          )}
+
         </div>
       </header>
 
