@@ -70,7 +70,7 @@ export function HomePage() {
               </button>
               <Link
                 to="/login"
-                className="rounded-xl border border-slate-200 bg-white/80 px-6 py-3.5 font-bold text-ink-700 hover:bg-slate-50 hover:border-brand-300 hover:text-brand-700 hover:scale-[1.02] transition-all text-sm shadow-sm"
+                className="rounded-xl border border-slate-300 dark:border-slate-800 bg-transparent px-6 py-3.5 font-bold text-ink-700 dark:text-ink-500 hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:text-brand-700 dark:hover:text-brand-400 hover:border-brand-300 dark:hover:border-brand-800 hover:scale-[1.02] transition-all text-sm shadow-sm"
               >
                 Sign In / Register
               </Link>
