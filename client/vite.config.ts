@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       // Lets the client call relative /api/* paths in dev without CORS friction.
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:4001',
         changeOrigin: true
       }
     }
