@@ -1,108 +1,101 @@
 # 🌍 GreenTrack — Carbon Footprint Awareness Platform
 
-Understand, track, and reduce your personal carbon footprint through a five-minute weekly check-in, ML-driven personalization, and a library of concrete, ranked actions.
-
-Built for **Challenge 3: Carbon Footprint Awareness Platform**.
+GreenTrack is a premium web application designed to help individuals understand, track, and reduce their personal carbon footprint through dynamic calculations, ML-driven personalization, and a curated library of concrete, actionable habits.
 
 ---
 
-## Why this design
+## Key Features
 
-The challenge asks for three things: **understand**, **track**, and **reduce**. Every major feature maps directly to one of those verbs:
+The platform follows a three-step cycle to encourage real, sustainable habits:
 
-| Verb | Feature |
-|---|---|
-| **Understand** | A category-by-category breakdown (transport, home energy, diet, shopping, waste) computed from real, documented emission factors, plus a percentile comparison against a modeled population and an ML-detected "lifestyle persona" that explains *why* your footprint looks the way it does. |
-| **Track** | A history of every weekly check-in, a trend chart, and a linear-regression-based 30-day projection once enough history exists. |
-| **Reduce** | A ranked, personalized list of concrete actions (with estimated kg CO2e saved per week), a one-click "mark complete" flow, and a running tally of cumulative savings — i.e. gamified follow-through, not just a one-time score. |
-
----
-
-## Personalization: rules + real ML
-
-Per the project brief, this isn't just a calculator — it combines two complementary layers:
-
-1. **A rules engine** (`server/src/services/rulesEngine.ts`) ranks a curated catalog of 21 actions by `(category's share of the user's footprint) × (estimated savings)`, then caps results per category so suggestions stay diverse instead of dogpiling one area.
-2. **A from-scratch ML layer** (`server/src/services/mlInsights.ts`):
-   - **K-means clustering** (`services/kmeans.ts`) groups a deterministic synthetic comparison population into lifestyle "personas" (commuter-heavy, home-energy-heavy, diet-heavy, etc.), and assigns each user to the nearest cluster centroid to explain *which* category dominates their footprint and why.
-   - **Percentile scoring** compares a user's total against that same comparison population.
-   - **Simple linear regression** (`services/linearRegression.ts`) fits a trend line across a user's tracked history and projects their footprint 30 days forward, with an R² check so a weak trend isn't presented as a confident prediction.
-
-These are implemented from scratch rather than pulled from a heavy ML library, on purpose: the feature vectors are tiny (5 dimensions), and a transparent, dependency-free, fully-unit-tested implementation is both more efficient and more trustworthy than a black-box library for this scale of problem. See `docs/ARCHITECTURE.md` for the full reasoning.
+1. **Understand**:
+   - A step-by-step 5-category calculator (Transport, Home Energy, Diet, Shopping, Waste) computed using real, documented emission factors.
+   - Comparison against average population percentiles and clustering into a lifestyle "persona" (e.g., commuter-heavy, diet-heavy) to explain *why* your footprint looks the way it does.
+2. **Track**:
+   - Save historical footprint check-ins to monitor progress over time.
+   - Visualize weekly data and category breakdowns using responsive, gradient-filled charts.
+   - Automatically project emissions 30 days forward using linear regression trends once sufficient history is built.
+3. **Reduce**:
+   - A ranked, personalized library of carbon-reducing actions tailored specifically to your footprint areas.
+   - Interactive progress bars, one-click completions, and a running tally of cumulative savings to gamify and encourage long-term follow-through.
 
 ---
 
-## Quick start
+## Tech Stack & Architecture
 
-Requires Node.js 18+ and npm.
-
-```bash
-git clone <your-repo-url>
-cd carbon-footprint-platform
-npm install          # installs both workspaces (server + client)
-
-# Server
-cp server/.env.example server/.env   # edit JWT_SECRET before deploying for real
-npm run dev:server                   # http://localhost:4000
-
-# Client (in a second terminal)
-cp client/.env.example client/.env
-npm run dev:client                   # http://localhost:5173 (proxies /api to :4000)
-```
-
-Open `http://localhost:5173`, click **Continue as guest**, and you're in — no signup required to try it.
-
-### Tests, lint, build
-
-```bash
-npm test     # runs both workspaces: 57 server tests + 30 client tests, all passing
-npm run lint # ESLint, zero warnings on both workspaces
-npm run build # type-checks + builds both workspaces
-```
+- **Frontend**: React 19 (TypeScript), Vite, Tailwind CSS v4, Recharts (for data visualization), React Router 6.
+- **Backend**: Node.js, Express, TypeScript, Zod (runtime validation and type definition).
+- **Security & Efficiency**: Scoped CORS policies, Helmet headers, two-tier rate limiting, bcrypt password hashing, and lightweight, dependency-free local JSON persistence.
+- **ML Services**: Custom, dependency-free mathematical services built from scratch:
+  - **K-Means Clustering**: Clusters users into distinct lifestyle personas using spatial centroids.
+  - **Linear Regression**: Fits historical check-ins to project carbon savings trends and evaluate data fit ($R^2$ check).
 
 ---
 
-## How this maps to the grading parameters
+## Quick Start
 
-| Parameter | Where to look |
-|---|---|
-| **Code Quality** | Strict TypeScript (`strict: true`, `noUnusedLocals`, `noImplicitReturns`) across both workspaces. Layered server architecture (routes → controllers → services → models). Zero ESLint warnings. Zod schemas double as runtime validation *and* the single source of truth for TypeScript types. See `docs/ARCHITECTURE.md`. |
-| **Security** | JWT auth with bcrypt password hashing, Helmet security headers, scoped CORS, two-tier rate limiting (general + stricter on auth routes), Zod input validation on every mutating endpoint, centralized error handling that never leaks stack traces in production, `npm audit` reports **0 vulnerabilities** in production dependencies. See `docs/SECURITY.md`. |
-| **Efficiency** | Zero native-binary dependencies (no node-gyp/compiled modules — see the persistence-layer note in `docs/ARCHITECTURE.md`). O(1) in-memory lookups via `Map`. Route-level code-splitting on the client (`React.lazy`) plus manual vendor chunking, keeping the initial JS bundle to ~60KB gzipped while the chart library only loads on pages that need it. |
-| **Testing** | **87 automated tests, all passing** (57 backend: unit + integration via Supertest against an in-memory store; 30 frontend: component + context tests via Vitest + React Testing Library). Backend coverage is ~98-100% on every service/controller/model file (`npm run test:coverage --workspace=server`). |
-| **Accessibility** | Semantic landmarks, a skip-to-content link, visible focus rings, labeled form fields with `aria-describedby` hints, `<fieldset>`/`<legend>` grouping, charts exposed via `role="img"` with a full text summary *and* a `sr-only` data table fallback for screen readers, `prefers-reduced-motion` support, accessible progress bars with `aria-valuenow/min/max`. See `docs/ACCESSIBILITY.md`. |
-| **Problem Statement Alignment** | See the "Why this design" table above — every feature traces back to understand/track/reduce, not just a generic CRUD app. |
+### Prerequisites
+- Node.js 18+ and npm installed.
+
+### Setup and Running Locally
+
+1. **Clone the repository and install dependencies**:
+   ```bash
+   git clone https://github.com/ayushnaugariya/carbon-footprint-platform.git
+   cd carbon-footprint-platform
+   npm install
+   ```
+
+2. **Configure and run the Backend API**:
+   ```bash
+   cp server/.env.example server/.env
+   # Open server/.env and edit JWT_SECRET with a secure value
+   npm run dev:server
+   # Server starts on http://localhost:4001
+   ```
+
+3. **Configure and run the Client Frontend** (in a separate terminal):
+   ```bash
+   cp client/.env.example client/.env
+   npm run dev:client
+   # Frontend starts on http://localhost:5173 (proxies /api to port 4001)
+   ```
+
+Open `http://localhost:5173` in your browser. You can click **Try instantly as Guest** or create an account to start tracking!
 
 ---
 
-## Project structure
+## Quality & Standards
+
+- **Code Quality**: Strict TypeScript configuration (`strict: true`, type-safe JSON payloads, clean modular layer structure: routes → controllers → services → models). Zero ESLint warnings.
+- **Security**: Centralized error boundaries, JWT auth, input validation on every mutating endpoint, and zero production vulnerabilities.
+- **Accessibility**: Semantic HTML5 landmarks, visible focus indicators, screen-reader-only summary tables for charts, `prefers-reduced-motion` animation support, and accessible ARIA attributes.
+- **Tests**: **87 automated tests** (57 backend integration tests via Jest + Supertest; 30 frontend component tests via Vitest + React Testing Library).
+
+---
+
+## Directory Structure
 
 ```
 carbon-footprint-platform/
 ├── server/                  # Express + TypeScript API
 │   └── src/
-│       ├── config/           # env loading, JSON-file data store
+│       ├── config/           # env loading, JSON-file database
 │       ├── controllers/      # request handlers
-│       ├── data/             # emission factors + recommendation catalog
+│       ├── data/             # emission factors + recommendations catalog
 │       ├── middleware/       # auth, validation, rate limiting, errors
-│       ├── models/           # typed data-access functions
-│       ├── routes/           # Express routers
+│       ├── models/           # typed data-access layers
+│       ├── routes/           # Express router configs
 │       ├── services/         # calculator, rules engine, ML (kmeans/regression)
-│       ├── types/            # Zod schemas + shared types
-│       └── __tests__/        # Jest + Supertest, 57 tests
-├── client/                   # React + TypeScript (Vite) SPA
+│       └── __tests__/        # Jest + Supertest integration tests
+├── client/                   # React + TypeScript (Vite) Frontend
 │   └── src/
-│       ├── components/       # forms, charts, cards (+ co-located tests)
-│       ├── context/ hooks/   # auth state
-│       ├── lib/               # typed fetch client
-│       ├── pages/             # route-level views
-│       └── types/
-└── docs/                      # architecture, API reference, accessibility, security notes
+│       ├── components/       # wizard form steps, charts, layout (+ tests)
+│       ├── context/ hooks/   # auth states and helper hooks
+│       ├── lib/               # fetch client
+│       └── pages/             # route views (Home, Dashboard, Track, History, Actions)
+└── docs/                      # architecture, API, and accessibility documentation
 ```
-
-## API reference
-
-See `docs/API.md` for every endpoint, request/response shape, and auth requirements.
 
 ## License
 
