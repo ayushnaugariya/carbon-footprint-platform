@@ -1,0 +1,46 @@
+{
+  "_meta": {
+    "description": "Approximate average emission factors (kg CO2e) used for illustrative footprint estimation. Derived from publicly available, widely-cited average figures (e.g. EPA, DEFRA, IPCC-style averages). These are simplified averages for awareness/education purposes, not a certified carbon audit.",
+    "unit_basis": "kg CO2e"
+  },
+  "transport": {
+    "car_petrol_km": 0.192,
+    "car_diesel_km": 0.171,
+    "car_electric_km": 0.053,
+    "car_hybrid_km": 0.120,
+    "motorbike_km": 0.103,
+    "bus_km": 0.105,
+    "train_km": 0.041,
+    "metro_km": 0.035,
+    "bicycle_km": 0,
+    "walk_km": 0,
+    "flight_short_haul_km": 0.255,
+    "flight_long_haul_km": 0.195
+  },
+  "home_energy": {
+    "electricity_kwh": 0.475,
+    "natural_gas_kwh": 0.202,
+    "lpg_kg": 2.983,
+    "renewable_electricity_kwh": 0.045
+  },
+  "diet": {
+    "meat_heavy_daily": 7.19,
+    "average_daily": 5.05,
+    "pescatarian_daily": 3.91,
+    "vegetarian_daily": 3.81,
+    "vegan_daily": 2.89
+  },
+  "consumption": {
+    "fast_fashion_item": 22.0,
+    "general_clothing_item": 10.0,
+    "electronics_small_item": 85.0,
+    "electronics_large_item": 250.0,
+    "food_delivery_order": 1.7,
+    "online_parcel_delivery": 0.5
+  },
+  "waste": {
+    "landfill_kg": 0.58,
+    "recycled_kg": 0.12,
+    "composted_kg": 0.05
+  }
+}

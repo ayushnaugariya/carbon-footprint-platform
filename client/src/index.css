@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #f1f8f0;
+  --color-brand-100: #dceedb;
+  --color-brand-200: #b8ddb6;
+  --color-brand-300: #8cc888;
+  --color-brand-400: #5fb15c;
+  --color-brand-500: #3d9639;
+  --color-brand-600: #2d7a2a;
+  --color-brand-700: #246122;
+  --color-brand-800: #1f4e1e;
+  --color-brand-900: #1a401a;
+
+  --color-accent-500: #c97a1a;
+  --color-accent-600: #a8620f;
+
+  --color-ink-900: #14181a;
+  --color-ink-700: #3a4246;
+  --color-ink-500: #5c6669;
+
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-ink-900);
+  background-color: #fafaf8;
+}
+
+/* Visible, high-contrast focus ring everywhere - critical for keyboard accessibility. */
+:focus-visible {
+  outline: 3px solid var(--color-brand-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip link: hidden until focused, then jumps above the fixed header. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-brand-700);
+  color: white;
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
