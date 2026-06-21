@@ -6,18 +6,18 @@ import { hashPassword, signToken, verifyPassword } from '../services/authService
 import { AppError } from '../middleware/auth.middleware';
 
 export const signupSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  displayName: z.string().min(1).max(60)
+  email: z.string().trim().toLowerCase().email().max(255),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(100),
+  displayName: z.string().trim().min(1).max(60)
 });
 
 export const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1)
+  email: z.string().trim().toLowerCase().email().max(255),
+  password: z.string().min(1).max(100)
 });
 
 export const guestSchema = z.object({
-  displayName: z.string().min(1).max(60).optional()
+  displayName: z.string().trim().min(1).max(60).optional()
 });
 
 function sanitizeUser(user: UserRecord) {

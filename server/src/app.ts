@@ -12,6 +12,9 @@ import actionsRoutes from './routes/actions.routes';
 export function createApp(): Express {
   const app = express();
 
+  // Trust proxy for reverse proxy deployments (Render, Vercel, Railway, etc.)
+  app.set('trust proxy', 1);
+
   // Security headers
   app.use(helmet());
 

@@ -28,6 +28,12 @@ export function completeAction(req: Request, res: Response): void {
     throw new AppError(`Unknown action id: ${actionId}`, 404);
   }
 
+  const existingCompletions = listCompletedActionsForUser(userId);
+  const isAlreadyCompleted = existingCompletions.some((c) => c.action_id === actionId);
+  if (isAlreadyCompleted) {
+    throw new AppError('Action already completed', 409);
+  }
+
   const record = insertCompletedAction(uuidv4(), userId, action.id, action.estimatedWeeklySavingsKg);
   const totalSavingsKg = getTotalSavingsForUser(userId);
 

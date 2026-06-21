@@ -65,6 +65,16 @@ describe('Actions catalog and completion', () => {
     expect(second.body.totalSavingsKg).toBeGreaterThan(first.body.totalSavingsKg);
   });
 
+  it('rejects completing the same action more than once', async () => {
+    const token = await getAuthToken();
+    const first = await request(app).post('/api/actions/complete').set('Authorization', `Bearer ${token}`).send({ actionId: 'home-led-bulbs' });
+    expect(first.status).toBe(201);
+
+    const second = await request(app).post('/api/actions/complete').set('Authorization', `Bearer ${token}`).send({ actionId: 'home-led-bulbs' });
+    expect(second.status).toBe(409);
+    expect(second.body.error).toContain('Action already completed');
+  });
+
   it('lists completed actions for the authenticated user', async () => {
     const token = await getAuthToken();
     await request(app).post('/api/actions/complete').set('Authorization', `Bearer ${token}`).send({ actionId: 'waste-recycle-more' });
