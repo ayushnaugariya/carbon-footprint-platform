@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express, { Express, NextFunction, Request, Response } from 'express';
+import express, { Express, Request, Response } from 'express';
 import helmet from 'helmet';
 import { config } from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
@@ -40,21 +40,32 @@ export function createApp(): Express {
   // CORS: restrict to the configured origin only. Preflight requests from
   // unrecognised origins receive a 403 rather than a silent omission of the
   // ACAO header, making rejection behaviour explicit and auditable.
-  const corsOptions: cors.CorsOptions = {
-    origin: (origin, callback) => {
-      // Allow server-to-server or same-origin requests (origin is undefined).
-      if (!origin || origin === config.corsOrigin) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: origin '${origin}' is not allowed`));
+  const corsOptionsDelegate = (req: Request, callback: (err: Error | null, options?: cors.CorsOptions) => void) => {
+    const origin = req.header('Origin');
+    let allowed = false;
+
+    if (!origin || origin === config.corsOrigin) {
+      allowed = true;
+    } else {
+      const host = req.header('Host');
+      if (host && (origin === `https://${host}` || origin === `http://${host}`)) {
+        allowed = true;
+      } else if (origin.endsWith('.vercel.app')) {
+        allowed = true;
       }
-    },
-    credentials: true
+    }
+
+    if (allowed) {
+      callback(null, { origin: true, credentials: true });
+    } else {
+      callback(new Error(`CORS: origin '${origin}' is not allowed`), { origin: false });
+    }
   };
-  app.use(cors(corsOptions));
+
+  app.use(cors(corsOptionsDelegate));
 
   // Reject CORS preflight from disallowed origins before they reach any route.
-  app.options('*', cors(corsOptions) as (req: Request, res: Response, next: NextFunction) => void);
+  app.options('*', cors(corsOptionsDelegate) as any);
 
   // Tighter body size limits per route group to reduce DoS surface area.
   // Auth endpoints only need a small envelope; footprint inputs are larger.

@@ -89,7 +89,17 @@ export function me(req: Request, res: Response): void {
   const userId = req.auth?.userId;
   if (!userId) throw new AppError('Not authenticated', 401);
 
-  const user = findUserById(userId);
+  let user = findUserById(userId);
+  if (!user && req.auth?.isGuest) {
+    user = createUser({
+      id: userId,
+      email: null,
+      passwordHash: null,
+      displayName: 'Guest',
+      isGuest: true
+    });
+  }
+
   if (!user) throw new AppError('User not found', 404);
 
   res.status(200).json({ user: sanitizeUser(user) });
