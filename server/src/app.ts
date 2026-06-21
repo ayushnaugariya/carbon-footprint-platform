@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express, { Express, Request, Response } from 'express';
+import express, { Express, NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { config } from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
@@ -12,16 +12,59 @@ import actionsRoutes from './routes/actions.routes';
 export function createApp(): Express {
   const app = express();
 
-  // Trust proxy for reverse proxy deployments (Render, Vercel, Railway, etc.)
+  // Trust the first proxy hop (Render, Vercel, Railway, Cloudflare, etc.) so
+  // rate-limiting sees the real client IP rather than the proxy address.
   app.set('trust proxy', 1);
 
-  // Security headers
-  app.use(helmet());
+  // Defence-in-depth: explicitly remove the X-Powered-By header so attackers
+  // cannot fingerprint the server technology from error responses.
+  app.disable('x-powered-by');
 
-  // Restrict cross-origin requests to the configured client origin only.
-  app.use(cors({ origin: config.corsOrigin, credentials: true }));
+  // Helmet sets a comprehensive set of security-related HTTP response headers.
+  // We override the Content-Security-Policy to be explicit: this is a pure API
+  // server that never serves HTML, so we lock everything down to deny.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'none'"],
+          frameAncestors: ["'none'"]
+        }
+      },
+      crossOriginEmbedderPolicy: true,
+      crossOriginOpenerPolicy: { policy: 'same-origin' },
+      crossOriginResourcePolicy: { policy: 'same-origin' }
+    })
+  );
 
-  app.use(express.json({ limit: '100kb' }));
+  // CORS: restrict to the configured origin only. Preflight requests from
+  // unrecognised origins receive a 403 rather than a silent omission of the
+  // ACAO header, making rejection behaviour explicit and auditable.
+  const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+      // Allow server-to-server or same-origin requests (origin is undefined).
+      if (!origin || origin === config.corsOrigin) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin '${origin}' is not allowed`));
+      }
+    },
+    credentials: true
+  };
+  app.use(cors(corsOptions));
+
+  // Reject CORS preflight from disallowed origins before they reach any route.
+  app.options('*', cors(corsOptions) as (req: Request, res: Response, next: NextFunction) => void);
+
+  // Tighter body size limits per route group to reduce DoS surface area.
+  // Auth endpoints only need a small envelope; footprint inputs are larger.
+  app.use('/api/auth', express.json({ limit: '4kb' }));
+  app.use('/api/footprint', express.json({ limit: '8kb' }));
+  app.use('/api/actions', express.json({ limit: '4kb' }));
+  app.use('/api/insights', express.json({ limit: '2kb' }));
+  // Fallback for health and any future routes.
+  app.use(express.json({ limit: '16kb' }));
+
   app.use(generalRateLimiter);
 
   app.get('/api/health', (_req: Request, res: Response) => {

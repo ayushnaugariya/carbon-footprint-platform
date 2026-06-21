@@ -10,19 +10,21 @@ export function notFoundHandler(req: Request, res: Response): void {
 export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction): void {
   const statusCode = err instanceof AppError ? err.statusCode : 500;
 
-  // Never leak stack traces or internal error details in production responses.
-  const body: Record<string, unknown> = {
-    error: statusCode === 500 && config.nodeEnv === 'production' ? 'Internal server error' : err.message
-  };
+  // In production, mask internal error details to avoid leaking stack traces or
+  // implementation hints. Use the AppError message only for client-facing errors
+  // (4xx); suppress it for unexpected server errors (5xx).
+  const isClientError = statusCode >= 400 && statusCode < 500;
+  const message =
+    config.nodeEnv === 'production' && !isClientError ? 'Internal server error' : err.message;
 
-  if (config.nodeEnv !== 'production') {
-    body.stack = err.stack;
-  }
-
-  if (statusCode === 500) {
+  // Always log unexpected server errors with full context server-side.
+  // Stack traces are NEVER sent in HTTP responses — not even in development —
+  // since that would expose internal file paths and implementation details.
+  if (statusCode >= 500) {
     // eslint-disable-next-line no-console
-    console.error(err);
+    console.error('[Server Error]', err);
   }
 
-  res.status(statusCode).json(body);
+  res.status(statusCode).json({ error: message });
 }
+

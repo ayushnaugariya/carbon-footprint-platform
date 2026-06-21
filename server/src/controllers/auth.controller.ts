@@ -5,10 +5,20 @@ import { createUser, findUserByEmail, findUserById, UserRecord } from '../models
 import { hashPassword, signToken, verifyPassword } from '../services/authService';
 import { AppError } from '../middleware/auth.middleware';
 
+/** Strips HTML tags from a string to prevent stored XSS via display names. */
+function stripHtml(value: string): string {
+  return value.replace(/<[^>]*>/g, '').trim();
+}
+
 export const signupSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(255),
-  password: z.string().min(8, 'Password must be at least 8 characters').max(100),
-  displayName: z.string().trim().min(1).max(60)
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(100)
+    .refine((p) => /[A-Z]/.test(p), { message: 'Password must contain at least one uppercase letter' })
+    .refine((p) => /\d/.test(p), { message: 'Password must contain at least one digit' }),
+  displayName: z.string().trim().min(1).max(60).transform(stripHtml)
 });
 
 export const loginSchema = z.object({
@@ -17,7 +27,7 @@ export const loginSchema = z.object({
 });
 
 export const guestSchema = z.object({
-  displayName: z.string().trim().min(1).max(60).optional()
+  displayName: z.string().trim().min(1).max(60).transform(stripHtml).optional()
 });
 
 function sanitizeUser(user: UserRecord) {
@@ -30,7 +40,8 @@ function sanitizeUser(user: UserRecord) {
 }
 
 export async function signup(req: Request, res: Response): Promise<void> {
-  const { email, password, displayName } = req.body as z.infer<typeof signupSchema>;
+  // req.body is already validated+parsed by the validateBody middleware.
+  const { email, password, displayName } = req.body as z.output<typeof signupSchema>;
 
   if (findUserByEmail(email)) {
     throw new AppError('An account with this email already exists', 409);
@@ -44,7 +55,7 @@ export async function signup(req: Request, res: Response): Promise<void> {
 }
 
 export async function login(req: Request, res: Response): Promise<void> {
-  const { email, password } = req.body as z.infer<typeof loginSchema>;
+  const { email, password } = req.body as z.output<typeof loginSchema>;
 
   const user = findUserByEmail(email);
   if (!user || !user.password_hash) {
@@ -61,12 +72,12 @@ export async function login(req: Request, res: Response): Promise<void> {
 }
 
 export async function guestLogin(req: Request, res: Response): Promise<void> {
-  const { displayName } = req.body as z.infer<typeof guestSchema>;
+  const { displayName } = req.body as z.output<typeof guestSchema>;
   const user = createUser({
     id: uuidv4(),
     email: null,
     passwordHash: null,
-    displayName: displayName?.trim() || 'Guest',
+    displayName: displayName ?? 'Guest',
     isGuest: true
   });
 
@@ -83,3 +94,4 @@ export function me(req: Request, res: Response): void {
 
   res.status(200).json({ user: sanitizeUser(user) });
 }
+

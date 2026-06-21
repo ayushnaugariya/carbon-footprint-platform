@@ -6,7 +6,13 @@ import { RECOMMENDATIONS_CATALOG } from '../data/recommendationsCatalog';
 import { AppError } from '../middleware/auth.middleware';
 
 export const completeActionSchema = z.object({
-  actionId: z.string().min(1)
+  // Restrict to safe slug format: lowercase letters, digits, hyphens only.
+  // This blocks path-traversal and injection-style strings entirely.
+  actionId: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9-]+$/, 'Invalid action id format')
 });
 
 function requireUserId(req: Request): string {
@@ -21,11 +27,12 @@ export function getCatalog(_req: Request, res: Response): void {
 
 export function completeAction(req: Request, res: Response): void {
   const userId = requireUserId(req);
-  const { actionId } = req.body as z.infer<typeof completeActionSchema>;
+  const { actionId } = req.body as z.output<typeof completeActionSchema>;
 
   const action = RECOMMENDATIONS_CATALOG.find((a) => a.id === actionId);
   if (!action) {
-    throw new AppError(`Unknown action id: ${actionId}`, 404);
+    // Generic message — never echo the raw actionId back to avoid input reflection.
+    throw new AppError('Action not found', 404);
   }
 
   const existingCompletions = listCompletedActionsForUser(userId);
@@ -47,3 +54,4 @@ export function listCompleted(req: Request, res: Response): void {
 
   res.status(200).json({ completed, totalSavingsKg });
 }
+

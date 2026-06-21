@@ -15,8 +15,9 @@ export const footprintInputSchema = z.object({
     metroKmPerWeek: z.number().min(0).max(2000).default(0),
     bicycleKmPerWeek: z.number().min(0).max(1000).default(0),
     walkKmPerWeek: z.number().min(0).max(200).default(0),
-    flightsShortHaulPerYear: z.number().min(0).max(100).default(0),
-    flightsLongHaulPerYear: z.number().min(0).max(100).default(0)
+    // Flights are discrete events; fractional values are not physically meaningful.
+    flightsShortHaulPerYear: z.number().int().min(0).max(100).default(0),
+    flightsLongHaulPerYear: z.number().int().min(0).max(100).default(0)
   }),
   home: z.object({
     electricityKwhPerWeek: z.number().min(0).max(2000).default(0),
@@ -28,12 +29,13 @@ export const footprintInputSchema = z.object({
     type: z.enum(['meat_heavy', 'average', 'pescatarian', 'vegetarian', 'vegan'])
   }),
   consumption: z.object({
-    fastFashionItemsPerMonth: z.number().min(0).max(200).default(0),
-    generalClothingItemsPerMonth: z.number().min(0).max(200).default(0),
-    electronicsSmallPerYear: z.number().min(0).max(100).default(0),
-    electronicsLargePerYear: z.number().min(0).max(50).default(0),
-    foodDeliveryOrdersPerWeek: z.number().min(0).max(50).default(0),
-    onlineParcelsPerWeek: z.number().min(0).max(50).default(0)
+    // Item counts are discrete; fractional values are not meaningful.
+    fastFashionItemsPerMonth: z.number().int().min(0).max(200).default(0),
+    generalClothingItemsPerMonth: z.number().int().min(0).max(200).default(0),
+    electronicsSmallPerYear: z.number().int().min(0).max(100).default(0),
+    electronicsLargePerYear: z.number().int().min(0).max(50).default(0),
+    foodDeliveryOrdersPerWeek: z.number().int().min(0).max(50).default(0),
+    onlineParcelsPerWeek: z.number().int().min(0).max(50).default(0)
   }),
   waste: z.object({
     landfillKgPerWeek: z.number().min(0).max(200).default(0),

@@ -49,10 +49,32 @@ describe('Actions catalog and completion', () => {
     expect(res.body.catalog.length).toBeGreaterThan(0);
   });
 
-  it('rejects completing an unknown action id', async () => {
+  it('rejects actionId containing injection-style characters', async () => {
     const token = await getAuthToken();
-    const res = await request(app).post('/api/actions/complete').set('Authorization', `Bearer ${token}`).send({ actionId: 'not-a-real-action' });
+    // Path traversal attempt
+    const res1 = await request(app)
+      .post('/api/actions/complete')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionId: '../../etc/passwd' });
+    expect(res1.status).toBe(400);
+
+    // SQL/script injection attempt
+    const res2 = await request(app)
+      .post('/api/actions/complete')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionId: "'; DROP TABLE actions; --" });
+    expect(res2.status).toBe(400);
+  });
+
+  it('rejects completing an unknown action id with a generic error (no input reflection)', async () => {
+    const token = await getAuthToken();
+    const res = await request(app)
+      .post('/api/actions/complete')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionId: 'not-a-real-action' });
     expect(res.status).toBe(404);
+    // The raw actionId must NOT appear in the error response (input reflection prevention).
+    expect(res.body.error).not.toContain('not-a-real-action');
   });
 
   it('completes a valid action and accumulates savings', async () => {
@@ -73,6 +95,17 @@ describe('Actions catalog and completion', () => {
     const second = await request(app).post('/api/actions/complete').set('Authorization', `Bearer ${token}`).send({ actionId: 'home-led-bulbs' });
     expect(second.status).toBe(409);
     expect(second.body.error).toContain('Action already completed');
+  });
+
+  it('allows a guest user to complete actions', async () => {
+    // Guest users get a real userId and should be able to track actions.
+    const token = await getAuthToken();
+    const res = await request(app)
+      .post('/api/actions/complete')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionId: 'diet-meatless-day' });
+    expect(res.status).toBe(201);
+    expect(res.body.record.action_id).toBe('diet-meatless-day');
   });
 
   it('lists completed actions for the authenticated user', async () => {
@@ -105,3 +138,4 @@ describe('Insights recommendations', () => {
     expect(ids).not.toContain('transport-bike-commute');
   });
 });
+
