@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export function HomePage() {
   const { user, continueAsGuest } = useAuth();
@@ -15,6 +15,63 @@ export function HomePage() {
 
   // FAQ Accordion State (index of open question, null if closed)
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // Live Counter state
+  const [liveSavedCo2, setLiveSavedCo2] = useState(84392.42);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLiveSavedCo2(prev => prev + Number((Math.random() * 0.4 + 0.1).toFixed(2)));
+    }, 1500);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Quiz State
+  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
+  const [selectedAnswerIndex, setSelectedAnswerIndex] = useState<number | null>(null);
+  const [quizScore, setQuizScore] = useState(0);
+  const [hasAnswered, setHasAnswered] = useState(false);
+
+  const quizQuestions = [
+    {
+      q: "Which of these food items has the largest carbon footprint per kilogram of production?",
+      options: ["Tofu", "Poultry (Chicken)", "Cheese", "Beef"],
+      correctIndex: 3,
+      explanation: "Beef produces a massive ~60 kg of CO2e per kg of food due to methane release from digestion and large land-use requirements. In comparison, tofu produces less than 3 kg CO2e per kg."
+    },
+    {
+      q: "On average, how much CO2 does a single mature tree absorb in a full year?",
+      options: ["5 kg", "22 kg", "100 kg", "250 kg"],
+      correctIndex: 1,
+      explanation: "A mature tree absorbs approximately 22 kg (48 lbs) of CO2 per year. This is why planting forests takes decades to offset large emissions."
+    },
+    {
+      q: "What percentage of global greenhouse gas emissions comes from the clothing and textile industry?",
+      options: ["1%", "4%", "10%", "25%"],
+      correctIndex: 2,
+      explanation: "The clothing and textile industry is responsible for about 10% of global emissions—more than all international flights and maritime shipping combined."
+    }
+  ];
+
+  const handleAnswerSelect = (optionIdx: number) => {
+    if (hasAnswered) return;
+    setSelectedAnswerIndex(optionIdx);
+    setHasAnswered(true);
+    if (optionIdx === quizQuestions[currentQuizIndex].correctIndex) {
+      setQuizScore(prev => prev + 1);
+    }
+  };
+
+  const handleNextQuiz = () => {
+    setSelectedAnswerIndex(null);
+    setHasAnswered(false);
+    if (currentQuizIndex === quizQuestions.length - 1) {
+      setCurrentQuizIndex(0);
+      setQuizScore(0);
+    } else {
+      setCurrentQuizIndex(prev => prev + 1);
+    }
+  };
 
   async function handleGuestClick() {
     setError(null);
@@ -136,6 +193,46 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Live Community Impact Counter */}
+      <section className="mx-4 flex flex-col items-center justify-center gap-4 bg-slate-50/40 dark:bg-slate-900/10 border border-slate-200/40 dark:border-slate-800/20 rounded-2xl p-6 text-center shadow-inner relative overflow-hidden select-none">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">
+            Live GreenTrack Network Activity
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-3xl mt-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-200/50 dark:divide-slate-800/40">
+          <div className="flex flex-col items-center p-2">
+            <span className="text-3xl font-black text-brand-700 dark:text-brand-400 tracking-tight" data-testid="live-saved-co2">
+              {liveSavedCo2.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg
+            </span>
+            <span className="text-[10px] font-bold text-ink-500 uppercase tracking-wider mt-1">
+              CO2e Saved by Community
+            </span>
+          </div>
+          <div className="flex flex-col items-center p-2">
+            <span className="text-3xl font-black text-brand-700 dark:text-brand-400 tracking-tight">
+              1,482
+            </span>
+            <span className="text-[10px] font-bold text-ink-500 uppercase tracking-wider mt-1">
+              Active Reduction Plans
+            </span>
+          </div>
+          <div className="flex flex-col items-center p-2">
+            <span className="text-3xl font-black text-brand-700 dark:text-brand-400 tracking-tight">
+              98.4%
+            </span>
+            <span className="text-[10px] font-bold text-ink-500 uppercase tracking-wider mt-1">
+              Actions Verification Rate
+            </span>
+          </div>
+        </div>
+      </section>
+
       {/* Interactive Micro-Estimator Section */}
       <section className="glass-panel rounded-3xl p-6 md:p-10 border border-slate-200/50 shadow-md mx-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         <div className="flex flex-col gap-5">
@@ -163,6 +260,7 @@ export function HomePage() {
                 max="500"
                 step="10"
                 value={drivingDistance}
+                aria-label="Weekly Driving"
                 onChange={(e) => setDrivingDistance(Number(e.target.value))}
                 className="w-full h-1.5 bg-slate-100 dark:bg-slate-800/60 rounded-lg appearance-none cursor-pointer accent-brand-600"
               />
@@ -233,6 +331,54 @@ export function HomePage() {
             ) : (
               <span className="text-red-500 dark:text-red-400 font-bold">🚨 High. Your emissions exceed the global average. Setting reduction goals will make a big difference!</span>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* Carbon Offset & Equivalents Section */}
+      <section className="mx-4 flex flex-col gap-6" data-testid="offset-equivalents-section">
+        <div className="text-center">
+          <span className="text-[10px] font-bold text-brand-600 uppercase tracking-widest">Offset & Equivalents</span>
+          <h2 className="text-2xl md:text-3xl font-black text-ink-900 tracking-tight mt-1">
+            Visualizing Your Impact
+          </h2>
+          <p className="text-xs text-ink-700 mt-2 max-w-xl mx-auto leading-relaxed">
+            What does {roughTotalTons} tons of CO2e look like in the real world? Here is what is required to offset it or what other human activities release the same amount.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-2">
+          {/* Card 1: Trees */}
+          <div className="glass-panel p-6 rounded-2xl border border-slate-200/50 shadow-sm flex flex-col gap-3 hover:scale-[1.02] transition-transform duration-200">
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl font-bold">
+              🌳
+            </div>
+            <h3 className="font-bold text-sm text-ink-900">Forest Absorption</h3>
+            <p className="text-[11px] text-ink-700 leading-normal">
+              You would need to plant <strong className="text-brand-600 font-extrabold">{Math.round(Number(roughTotalTons) * 45)} trees</strong> and let them grow for 10 years to offset your annual footprint.
+            </p>
+          </div>
+
+          {/* Card 2: Household Energy */}
+          <div className="glass-panel p-6 rounded-2xl border border-slate-200/50 shadow-sm flex flex-col gap-3 hover:scale-[1.02] transition-transform duration-200">
+            <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl font-bold">
+              🏠
+            </div>
+            <h3 className="font-bold text-sm text-ink-900">Home Electricity</h3>
+            <p className="text-[11px] text-ink-700 leading-normal">
+              Your estimated footprint is equal to running <strong className="text-amber-600 font-extrabold">{(Number(roughTotalTons) * 1.2).toFixed(1)} homes</strong>' entire electricity usage for a full year on standard grid mix.
+            </p>
+          </div>
+
+          {/* Card 3: Flights */}
+          <div className="glass-panel p-6 rounded-2xl border border-slate-200/50 shadow-sm flex flex-col gap-3 hover:scale-[1.02] transition-transform duration-200">
+            <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl font-bold">
+              ✈️
+            </div>
+            <h3 className="font-bold text-sm text-ink-900">Transatlantic Flights</h3>
+            <p className="text-[11px] text-ink-700 leading-normal">
+              This equals <strong className="text-blue-600 font-extrabold">{(Number(roughTotalTons) * 1.6).toFixed(1)} round-trip flights</strong> between London (LHR) and New York (JFK) in economy class.
+            </p>
           </div>
         </div>
       </section>
@@ -312,6 +458,78 @@ export function HomePage() {
               When food and organic waste decompose in anaerobic landfills (without oxygen), they release methane gas. Composting or reducing food waste diverts materials, avoiding methane generation entirely.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Interactive Climate Action Quiz Section */}
+      <section className="glass-panel rounded-3xl p-6 md:p-10 border border-slate-200/50 shadow-md mx-4 flex flex-col gap-6" data-testid="climate-quiz-section">
+        <div className="text-center max-w-xl mx-auto">
+          <span className="text-[10px] font-bold text-brand-600 uppercase tracking-widest">Test Your Climate IQ</span>
+          <h2 className="text-2xl md:text-3xl font-black text-ink-900 tracking-tight mt-1">
+            Climate Action Quiz
+          </h2>
+          <p className="text-xs text-ink-700 mt-2 leading-relaxed">
+            Test your knowledge of personal carbon footprints and climate science. Get instant answers and explanations.
+          </p>
+        </div>
+
+        <div className="max-w-2xl mx-auto w-full bg-slate-50/40 dark:bg-slate-900/10 border border-slate-100 dark:border-slate-800/40 rounded-2xl p-6 flex flex-col gap-5">
+          <div className="flex items-center justify-between text-[10px] font-bold text-ink-500 uppercase tracking-wider">
+            <span>Question {currentQuizIndex + 1} of {quizQuestions.length}</span>
+            <span className="text-brand-600" data-testid="quiz-score">Score: {quizScore} / {quizQuestions.length}</span>
+          </div>
+
+          <h3 className="font-bold text-sm text-ink-900 leading-normal" data-testid="quiz-question-text">
+            {quizQuestions[currentQuizIndex].q}
+          </h3>
+
+          <div className="grid grid-cols-1 gap-2.5">
+            {quizQuestions[currentQuizIndex].options.map((option, idx) => {
+              let btnStyle = 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 text-ink-900';
+              if (hasAnswered) {
+                if (idx === quizQuestions[currentQuizIndex].correctIndex) {
+                  btnStyle = 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500 text-emerald-800 dark:text-emerald-400 font-bold';
+                } else if (idx === selectedAnswerIndex) {
+                  btnStyle = 'bg-rose-50 dark:bg-rose-950/20 border-rose-500 text-rose-800 dark:text-rose-400';
+                } else {
+                  btnStyle = 'border-slate-200 dark:border-slate-800 opacity-60 text-ink-700';
+                }
+              }
+
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleAnswerSelect(idx)}
+                  disabled={hasAnswered}
+                  className={`w-full rounded-xl border p-3.5 text-left text-xs font-semibold transition-all duration-200 ${btnStyle}`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+
+          {hasAnswered && (
+            <div className="flex flex-col gap-4 mt-2 border-t border-slate-200/50 dark:border-slate-800/40 pt-4 animate-fadeIn" data-testid="quiz-feedback">
+              <div className="text-xs text-ink-700 leading-relaxed">
+                <span className="font-bold block text-ink-900 mb-1" data-testid="quiz-result-heading">
+                  {selectedAnswerIndex === quizQuestions[currentQuizIndex].correctIndex 
+                    ? '🎉 Correct!' 
+                    : '❌ Incorrect'}
+                </span>
+                {quizQuestions[currentQuizIndex].explanation}
+              </div>
+              <button
+                type="button"
+                onClick={handleNextQuiz}
+                className="self-end rounded-lg bg-brand-600 hover:bg-brand-700 px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors"
+                data-testid="next-quiz-btn"
+              >
+                {currentQuizIndex === quizQuestions.length - 1 ? 'Restart Quiz' : 'Next Question'}
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
