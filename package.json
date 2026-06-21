@@ -13,7 +13,7 @@
     "dev:client": "npm run dev --workspace=client",
     "build:server": "npm run build --workspace=server",
     "build:client": "npm run build --workspace=client",
-    "build": "npm run build:server && npm run build:client",
+    "build": "npm run build:server && npm run build:client && node -e \"const fs = require('fs'); fs.cpSync('client/dist', 'dist', { recursive: true });\"",
     "test:server": "npm run test --workspace=server",
     "test:client": "npm run test --workspace=client",
     "test": "npm run test:server && npm run test:client",
