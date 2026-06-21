@@ -117,6 +117,7 @@ export function AuthPage() {
                 id="displayName"
                 type="text"
                 required
+                autoComplete="name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 className="rounded-lg border border-slate-200 bg-white/60 px-3.5 py-2.5 text-sm transition-all duration-200 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100"
@@ -151,17 +152,22 @@ export function AuthPage() {
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              aria-describedby={mode === 'signup' ? 'password-hint' : undefined}
               className="rounded-lg border border-slate-200 bg-white/60 px-3.5 py-2.5 text-sm transition-all duration-200 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100"
             />
             {mode === 'signup' ? (
-              <p className="text-[10px] text-ink-500 leading-normal">
-                Must be at least 8 characters.
+              <p id="password-hint" className="text-[10px] text-ink-500 leading-normal">
+                Must be at least 8 characters with one uppercase letter and one digit.
               </p>
             ) : null}
           </div>
 
           {error ? (
-            <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2.5 text-xs text-rose-700 font-semibold border border-rose-100">
+            <p
+              role="alert"
+              aria-live="polite"
+              className="rounded-lg bg-rose-50 px-3 py-2.5 text-xs text-rose-700 font-semibold border border-rose-100"
+            >
               {error}
             </p>
           ) : null}
@@ -175,10 +181,10 @@ export function AuthPage() {
           </button>
         </form>
 
-        <div className="my-5 flex items-center gap-3" aria-hidden="true">
-          <div className="h-px flex-1 bg-slate-200" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-ink-400">or</span>
-          <div className="h-px flex-1 bg-slate-200" />
+        <div className="my-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-200" aria-hidden="true" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-ink-400" aria-hidden="true">or</span>
+          <div className="h-px flex-1 bg-slate-200" aria-hidden="true" />
         </div>
 
         {/* Guest Session Access */}

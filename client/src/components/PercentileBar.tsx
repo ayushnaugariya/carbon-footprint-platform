@@ -26,7 +26,7 @@ export function PercentileBar({ percentile }: { percentile: number }) {
     <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col gap-3">
       <div>
         <p className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">How you compare</p>
-        <p className="mt-1 text-2xl font-black text-ink-900">
+        <p className="mt-1 text-2xl font-black text-ink-900" aria-label={`${clamped}${ordinalSuffix(clamped)} percentile`}>
           {clamped}
           {ordinalSuffix(clamped)} percentile
         </p>
@@ -39,6 +39,7 @@ export function PercentileBar({ percentile }: { percentile: number }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label="Footprint percentile compared to similar lifestyles"
+        aria-describedby="percentile-context"
       >
         <div
           className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 transition-all duration-500 ease-out"
@@ -46,13 +47,14 @@ export function PercentileBar({ percentile }: { percentile: number }) {
         />
       </div>
 
-      <div className={`rounded-xl border px-4 py-2.5 text-xs font-semibold ${textTheme.color}`}>
+      <div className={`rounded-xl border px-4 py-2.5 text-xs font-semibold ${textTheme.color}`} aria-live="polite">
         {textTheme.text}
       </div>
 
-      <p className="text-[10px] text-ink-500 leading-normal">
+      <p id="percentile-context" className="text-[10px] text-ink-500 leading-normal">
         Lower percentile means a smaller footprint relative to a comparison population of similar lifestyle profiles.
       </p>
     </div>
   );
 }
+

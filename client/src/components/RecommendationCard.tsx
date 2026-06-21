@@ -43,12 +43,22 @@ export function RecommendationCard({ action, onComplete, completed = false }: Re
         </p>
       </div>
 
+      {/* Screen reader live region announces when an action is marked complete */}
+      <span aria-live="polite" className="sr-only">
+        {isDone ? `${action.title} marked as complete.` : ''}
+      </span>
+
       {onComplete ? (
         <button
           type="button"
           onClick={handleComplete}
           disabled={isDone || isSubmitting}
           aria-pressed={isDone}
+          aria-label={
+            isDone
+              ? `${action.title} — completed`
+              : `Mark ${action.title} as complete`
+          }
           className={[
             'shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
             isDone ? 'bg-brand-600 text-white' : 'border border-brand-600 text-brand-700 hover:bg-brand-50'

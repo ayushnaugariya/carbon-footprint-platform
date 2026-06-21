@@ -25,16 +25,16 @@ describe('RecommendationCard', () => {
     const onComplete = vi.fn().mockResolvedValue(undefined);
     render(<RecommendationCard action={action} onComplete={onComplete} />);
 
-    const button = screen.getByRole('button', { name: /mark complete/i });
+    const button = screen.getByRole('button', { name: `Mark ${action.title} as complete` });
     await userEvent.click(button);
 
     expect(onComplete).toHaveBeenCalledWith(action.id);
-    await waitFor(() => expect(screen.getByRole('button', { name: /completed/i })).toBeDisabled());
+    await waitFor(() => expect(screen.getByRole('button', { name: `${action.title} — completed` })).toBeDisabled());
   });
 
   it('renders as already completed when the completed prop is true', () => {
     render(<RecommendationCard action={action} onComplete={vi.fn()} completed />);
-    expect(screen.getByRole('button', { name: /completed/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: `${action.title} — completed` })).toBeDisabled();
   });
 
   it('does not render a button when onComplete is not provided', () => {

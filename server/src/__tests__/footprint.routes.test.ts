@@ -93,4 +93,73 @@ describe('Footprint routes', () => {
     expect(res.body.entry).not.toBeNull();
     expect(res.body.persona.title).toBeDefined();
   });
+
+  it('rejects fractional flight count', async () => {
+    const token = await getAuthToken();
+    const badInput = {
+      ...validInput,
+      transport: {
+        ...validInput.transport,
+        flightsShortHaulPerYear: 1.5,
+      },
+    };
+    const res = await request(app)
+      .post('/api/footprint')
+      .set('Authorization', `Bearer ${token}`)
+      .send(badInput);
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects fractional clothing item count', async () => {
+    const token = await getAuthToken();
+    const badInput = {
+      ...validInput,
+      consumption: {
+        ...validInput.consumption,
+        generalClothingItemsPerMonth: 2.3,
+      },
+    };
+    const res = await request(app)
+      .post('/api/footprint')
+      .set('Authorization', `Bearer ${token}`)
+      .send(badInput);
+    expect(res.status).toBe(400);
+  });
+
+  it('accepts zero-value footprint and returns non-negative numbers', async () => {
+    const token = await getAuthToken();
+    const zeroInput = {
+      transport: {
+        carPetrolKmPerWeek: 0,
+        carDieselKmPerWeek: 0,
+        carElectricKmPerWeek: 0,
+        carHybridKmPerWeek: 0,
+        motorbikeKmPerWeek: 0,
+        busKmPerWeek: 0,
+        trainKmPerWeek: 0,
+        metroKmPerWeek: 0,
+        bicycleKmPerWeek: 0,
+        walkKmPerWeek: 0,
+        flightsShortHaulPerYear: 0,
+        flightsLongHaulPerYear: 0
+      },
+      home: { electricityKwhPerWeek: 0, usesRenewableElectricity: false, naturalGasKwhPerWeek: 0, lpgKgPerWeek: 0 },
+      diet: { type: 'vegan' },
+      consumption: {
+        fastFashionItemsPerMonth: 0,
+        generalClothingItemsPerMonth: 0,
+        electronicsSmallPerYear: 0,
+        electronicsLargePerYear: 0,
+        foodDeliveryOrdersPerWeek: 0,
+        onlineParcelsPerWeek: 0
+      },
+      waste: { landfillKgPerWeek: 0, recycledKgPerWeek: 0, compostedKgPerWeek: 0 }
+    };
+    const res = await request(app)
+      .post('/api/footprint')
+      .set('Authorization', `Bearer ${token}`)
+      .send(zeroInput);
+    expect(res.status).toBe(201);
+    expect(res.body.breakdown.totalWeeklyKgCo2e).toBeGreaterThanOrEqual(0);
+  });
 });
