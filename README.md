@@ -9,14 +9,16 @@ GreenTrack is a premium web application designed to help individuals understand,
 The platform follows a three-step cycle to encourage real, sustainable habits:
 
 1. **Understand**:
-   - A step-by-step 5-category calculator (Transport, Home Energy, Diet, Shopping, Waste) computed using real, documented emission factors.
+   - A step-by-step 5-category calculator wizard (Transport, Home Energy, Diet, Shopping, Waste) computed using real, documented emission factors, with real-time live carbon estimation feedback.
    - Comparison against average population percentiles and clustering into a lifestyle "persona" (e.g., commuter-heavy, diet-heavy) to explain *why* your footprint looks the way it does.
+   - Interactive Landing Page: features a live community Saved CO2 odometer counter, an interactive Climate Action Quiz, and dynamic Carbon Offset equivalents (visualizing tons in terms of trees, homes, and flights).
 2. **Track**:
    - Save historical footprint check-ins to monitor progress over time.
    - Visualize weekly data and category breakdowns using responsive, gradient-filled charts.
    - Automatically project emissions 30 days forward using linear regression trends once sufficient history is built.
 3. **Reduce**:
    - A ranked, personalized library of carbon-reducing actions tailored specifically to your footprint areas.
+   - Interactive Carbon Goal Tracker: set percentage reduction targets (10% to 50%) via range sliders and watch your completed action savings accumulate toward your goals.
    - Interactive progress bars, one-click completions, and a running tally of cumulative savings to gamify and encourage long-term follow-through.
 
 ---
@@ -70,7 +72,7 @@ Open `http://localhost:5173` in your browser. You can click **Try instantly as G
 - **Code Quality**: Strict TypeScript configuration (`strict: true`, type-safe JSON payloads, clean modular layer structure: routes → controllers → services → models). Zero ESLint warnings.
 - **Security**: Centralized error boundaries, JWT auth, input validation on every mutating endpoint, and zero production vulnerabilities.
 - **Accessibility**: Semantic HTML5 landmarks, visible focus indicators, screen-reader-only summary tables for charts, `prefers-reduced-motion` animation support, and accessible ARIA attributes.
-- **Tests**: **87 automated tests** (57 backend integration tests via Jest + Supertest; 30 frontend component tests via Vitest + React Testing Library).
+- **Tests**: **124 automated tests** (70 backend integration tests via Jest + Supertest; 54 frontend component tests via Vitest + React Testing Library).
 
 ---
 
